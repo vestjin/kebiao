@@ -4,37 +4,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const gridViewContainer = document.getElementById('grid-view');
     const weekInput = document.getElementById('current-week');
     const viewToggleBtns = document.querySelectorAll('.toggle-btn');
+    
+    // 新增：获取“仅本周”过滤开关元素
+    const filterCheckbox = document.getElementById('filter-current-week');
 
     const days = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
     const sections = ["1-2", "3-4", "5-6", "7-8"];
 
-    // --- 新增：日期计算逻辑 ---
-    
+    // --- 日期计算逻辑 ---
+
     /**
      * 计算当前是第几周
-     * 基准日期：2026年3月2日（第1周周一）
+     * 改进：从 CONFIG 读取开学日期，实现配置集中化
      */
     function calculateCurrentWeek() {
-        const startDate = new Date('2026-03-02'); // 第1周周一
+        // 安全检查：确保 CONFIG 存在，否则使用默认值
+        const startDateStr = (typeof CONFIG !== 'undefined' && CONFIG.startDate) ? CONFIG.startDate : '2026-03-02';
+        const startDate = new Date(startDateStr);
         const today = new Date();
         
-        // 重置时间部分，只比较日期
         today.setHours(0, 0, 0, 0);
         startDate.setHours(0, 0, 0, 0);
         
-        // 计算相差的天数
         const diffTime = today - startDate;
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         
-        // 如果在开学前，返回0或提示
-        if (diffDays < 0) {
-            return 0; // 还没开学
-        }
+        if (diffDays < 0) return 0;
         
-        // 计算周次 (天数除以7，向上取整或+1)
-        const currentWeek = Math.floor(diffDays / 7) + 1;
-        
-        return currentWeek;
+        return Math.floor(diffDays / 7) + 1;
     }
 
     /**
@@ -42,8 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function getCurrentDayOfWeek() {
         const day = new Date().getDay();
-        // getDay() 返回 0(周日) 到 6(周六)
-        // 转换为：1(周一) 到 7(周日)
         return day === 0 ? 7 : day;
     }
 
@@ -73,14 +68,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 渲染列表视图 (移动端)
-    function renderListView(currentWeek) {
+    // 改进：增加 filterCurrentWeek 参数，支持仅显示本周课程
+    function renderListView(currentWeek, filterCurrentWeek) {
         listViewContainer.innerHTML = '';
         
-        // 获取今天是周几
-        const todayIndex = getCurrentDayOfWeek() - 1; // 0-6 对应 days数组索引
+        const todayIndex = getCurrentDayOfWeek() - 1;
         
         days.forEach((day, index) => {
-            const dayCourses = scheduleData.filter(c => c.day === day);
+            let dayCourses = scheduleData.filter(c => c.day === day);
+
+            // 改进：如果开启过滤，筛选本周有课的课程
+            if (filterCurrentWeek && currentWeek > 0) {
+                dayCourses = dayCourses.filter(c => isWeekActive(c.weeks, currentWeek));
+            }
+
+            // 如果当天无课，跳过渲染（避免空白分组）
             if (dayCourses.length === 0) return;
 
             const dayGroup = document.createElement('div');
@@ -89,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const dayTitle = document.createElement('div');
             dayTitle.className = 'day-title';
             
-            // 如果是今天，添加特殊标识
             if (index === todayIndex && currentWeek > 0) {
                 dayTitle.innerHTML = `📅 ${day} <span style="color:#ff5722; font-size:0.8rem;">(今天)</span>`;
                 dayTitle.style.background = '#fff3e0';
@@ -104,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const card = document.createElement('div');
                 card.className = `course-card type-${course.type || '理论'}`;
                 
-                // 检查当前周是否高亮
                 if (isWeekActive(course.weeks, currentWeek)) {
                     card.classList.add('active-week');
                 }
@@ -132,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const table = document.createElement('table');
         table.className = 'grid-table';
         
-        // 表头
         const todayIndex = getCurrentDayOfWeek();
         let headerRow = '<tr><th>时间</th>';
         days.forEach((d, i) => {
@@ -144,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         headerRow += '</tr>';
         table.innerHTML = headerRow;
 
-        // 内容行
         sections.forEach(sec => {
             let row = document.createElement('tr');
             let timeCell = document.createElement('td');
@@ -155,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 let cell = document.createElement('td');
                 cell.className = 'grid-cell';
                 
-                // 如果是今天的列，添加背景提示
                 if ((dayIdx + 1) === todayIndex && currentWeek > 0) {
                     cell.style.background = '#fff8e1';
                 }
@@ -168,17 +165,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         let block = document.createElement('div');
                         block.className = 'sub-block type-' + (c.type || '理论');
                         
-                        // 高亮逻辑
                         if (isWeekActive(c.weeks, currentWeek)) {
                             block.style.background = '#fff8e1';
                             block.style.borderLeftColor = '#ffc107';
                         }
 
-                        // 构建位置显示文本
                         let locationText = c.location ? `📍 ${c.location}` : '';
                         let weekText = `🗓️ ${c.weeks}周`;
 
-                        // 检查是否是当前周，如果是高亮周数
                         if (isWeekActive(c.weeks, currentWeek)) {
                             weekText = `🔥 第${c.weeks}周`;
                         }
@@ -203,26 +197,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始化
     function init() {
+        // 改进：动态设置 Header 信息，实现配置集中化
+        if (typeof CONFIG !== 'undefined') {
+            const headerH1 = document.querySelector('header h1');
+            const headerP = document.querySelector('header p');
+            if (headerH1) headerH1.innerText = `📚 ${CONFIG.className}课程表`;
+            if (headerP) headerP.innerText = CONFIG.semester;
+            document.title = `课表查询 - ${CONFIG.className}`;
+        }
+
         // 自动计算并填充当前周
         const autoWeek = calculateCurrentWeek();
         
-        // 只有当输入框为空时才自动填充
         if (!weekInput.value) {
             weekInput.value = autoWeek > 0 ? autoWeek : '';
         }
         
         const currentWeek = weekInput.value;
         
-        renderListView(currentWeek);
+        // 获取过滤状态
+        const isFilterActive = filterCheckbox ? filterCheckbox.checked : false;
+        
+        renderListView(currentWeek, isFilterActive);
         renderGridView(currentWeek);
         
-        // 在控制台显示日期信息（调试用）
         console.log(`当前日期: ${new Date().toLocaleDateString('zh-CN')}`);
         console.log(`计算周次: 第${autoWeek}周`);
     }
 
     // 事件监听
     weekInput.addEventListener('change', init);
+
+    // 改进：监听过滤开关变化
+    if (filterCheckbox) {
+        filterCheckbox.addEventListener('change', init);
+    }
 
     // 视图切换逻辑
     viewToggleBtns.forEach(btn => {
@@ -243,4 +252,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     init();
+
+    // --- 改进：PWA Service Worker 注册 ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => {
+                    console.log('Service Worker 注册成功:', reg.scope);
+                })
+                .catch(err => {
+                    console.log('Service Worker 注册失败:', err);
+                });
+        });
+    }
 });

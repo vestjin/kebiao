@@ -267,3 +267,12 @@ header p {
     color: #666;
     margin-top: 2px;
 }
+
+.filter-options {
+    font-size: 0.85rem;
+    color: var(--text-sub);
+}
+.filter-options input {
+    vertical-align: middle;
+    margin-right: 4px;
+}

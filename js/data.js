@@ -1,7 +1,12 @@
-// js/data.js
 
-const CLASS_NAME = "影像24.2班";
-const SEMESTER = "2025-2026学年春季学期";
+const CONFIG = {
+    className: "影像24.2班",
+    semester: "2025-2026学年春季学期",
+    startDate: "2026-03-02", // 将开学日期移至此处
+    maxWeeks: 20 // 可选：定义学期最大周数
+};
+
+// scheduleData 保持不变...
 
 // 课表核心数据
 // weeks: 授课周次字符串，如 "1-12"
