@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>课表查询 - 影像24.2班</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header>
+        <h1>📚 影像24.2班课程表</h1>
+        <p>2025-2026学年春季学期</p>
+    </header>
+
+    <div class="controls">
+        <div class="week-selector">
+            <label>当前周:</label>
+            <input type="number" id="current-week" placeholder="如: 5">
+            <span>周</span>
+        </div>
+        <div class="view-toggle">
+            <button class="toggle-btn active" data-view="list">列表</button>
+            <button class="toggle-btn" data-view="grid">网格</button>
+        </div>
+    </div>
+
+    <!-- 移动端显示的列表视图 -->
+    <div id="list-view" class="list-view"></div>
+
+    <!-- PC端显示的网格视图 -->
+    <div id="grid-view" class="grid-view"></div>
+
+    <!-- 引入脚本 -->
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
