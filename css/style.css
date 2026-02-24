@@ -227,3 +227,43 @@ header p {
 @media (max-width: 767px) {
     .grid-view { display: none; }
 }
+
+
+/* css/style.css 文件末尾追加 */
+
+/* 优化网格视图内的信息显示 */
+.grid-cell .sub-block {
+    padding: 6px; /* 增加内边距 */
+    border-left-width: 4px; /* 边框加粗 */
+}
+
+.grid-cell .meta {
+    display: flex;
+    flex-direction: column; /* 位置和周数分行显示 */
+    align-items: flex-start;
+    font-size: 0.8rem; /* 字号稍微调大 */
+    color: #555;
+    line-height: 1.4;
+    margin-top: 4px;
+}
+
+.grid-cell .meta span {
+    margin-bottom: 2px;
+}
+
+/* 位置标签样式 */
+.grid-cell .loc {
+    color: #1976d2;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* 周数标签样式 */
+.grid-cell .week {
+    background: #f0f0f0;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    color: #666;
+    margin-top: 2px;
+}

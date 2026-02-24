@@ -174,10 +174,23 @@ document.addEventListener('DOMContentLoaded', () => {
                             block.style.borderLeftColor = '#ffc107';
                         }
 
+                        // 构建位置显示文本
+                        let locationText = c.location ? `📍 ${c.location}` : '';
+                        let weekText = `🗓️ ${c.weeks}周`;
+
+                        // 检查是否是当前周，如果是高亮周数
+                        if (isWeekActive(c.weeks, currentWeek)) {
+                            weekText = `🔥 第${c.weeks}周`;
+                        }
+
                         block.innerHTML = `
                             <div class="name">${c.name}</div>
-                            <div class="meta">${c.location || ''} (${c.weeks}周)</div>
+                            <div class="meta">
+                                ${locationText ? `<span class="loc">${locationText}</span>` : ''}
+                                <span class="week">${weekText}</span>
+                            </div>
                         `;
+
                         cell.appendChild(block);
                     });
                 }
