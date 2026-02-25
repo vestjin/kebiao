@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 渲染列表视图 (移动端)
-    // 改进：增加 filterCurrentWeek 参数，支持仅显示本周课程
     function renderListView(currentWeek, filterCurrentWeek) {
         listViewContainer.innerHTML = '';
         
@@ -82,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayCourses = dayCourses.filter(c => isWeekActive(c.weeks, currentWeek));
             }
 
-            // 如果当天无课，跳过渲染（避免空白分组）
+            // 如果当天无课，跳过渲染
             if (dayCourses.length === 0) return;
 
             const dayGroup = document.createElement('div');
@@ -127,7 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 渲染网格视图 (桌面端)
-    function renderGridView(currentWeek) {
+    // 修改：增加 filterCurrentWeek 参数
+    function renderGridView(currentWeek, filterCurrentWeek) {
         gridViewContainer.innerHTML = '';
         const table = document.createElement('table');
         table.className = 'grid-table';
@@ -157,14 +157,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     cell.style.background = '#fff8e1';
                 }
                 
-                const courses = scheduleData.filter(c => c.day === day && c.section === sec);
+                // 获取该时间段的课程
+                let courses = scheduleData.filter(c => c.day === day && c.section === sec);
                 
+                // 修改：应用过滤逻辑
+                if (filterCurrentWeek && currentWeek > 0) {
+                    courses = courses.filter(c => isWeekActive(c.weeks, currentWeek));
+                }
+
                 if (courses.length > 0) {
                     cell.classList.add('has-class');
                     courses.forEach(c => {
                         let block = document.createElement('div');
                         block.className = 'sub-block type-' + (c.type || '理论');
                         
+                        // 如果是本周课程，进行高亮
                         if (isWeekActive(c.weeks, currentWeek)) {
                             block.style.background = '#fff8e1';
                             block.style.borderLeftColor = '#ffc107';
@@ -197,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始化
     function init() {
-        // 改进：动态设置 Header 信息，实现配置集中化
+        // 改进：动态设置 Header 信息
         if (typeof CONFIG !== 'undefined') {
             const headerH1 = document.querySelector('header h1');
             const headerP = document.querySelector('header p');
@@ -218,9 +225,30 @@ document.addEventListener('DOMContentLoaded', () => {
         // 获取过滤状态
         const isFilterActive = filterCheckbox ? filterCheckbox.checked : false;
         
+        // 渲染视图（传入过滤参数）
         renderListView(currentWeek, isFilterActive);
-        renderGridView(currentWeek);
+        renderGridView(currentWeek, isFilterActive);
         
+        // --- 修复：初始状态同步 ---
+        // 根据屏幕宽度判断默认视图，并同步按钮状态
+        // CSS 中 768px 为界限，>=768px 显示网格，<768px 显示列表
+        const isWideScreen = window.innerWidth >= 768;
+        
+        // 重置所有按钮状态
+        viewToggleBtns.forEach(btn => {
+            btn.classList.remove('active');
+            // 根据屏幕宽度激活对应按钮
+            if ((isWideScreen && btn.dataset.view === 'grid') || 
+                (!isWideScreen && btn.dataset.view === 'list')) {
+                btn.classList.add('active');
+            }
+        });
+        
+        // 注意：这里不需要手动设置 display:block/none
+        // 因为 CSS Media Query 已经处理了初始显示，
+        // 只要按钮的 active 类正确即可，用户点击按钮后 JS 会接管显示逻辑。
+        // --------------------------
+
         console.log(`当前日期: ${new Date().toLocaleDateString('zh-CN')}`);
         console.log(`计算周次: 第${autoWeek}周`);
     }
