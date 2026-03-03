@@ -4,9 +4,42 @@ const CONFIG = {
     semester: "2025-2026学年春季学期",
     startDate: "2026-03-02", // 将开学日期移至此处
     maxWeeks: 20 // 可选：定义学期最大周数
+    // 新增：课程时间段配置
+    timeSlots: {
+        1: "8:00-8:45",
+        2: "8:55-9:40",
+        3: "10:00-10:45",
+        4: "10:55-11:40",
+        5: "13:30-14:15",
+        6: "14:25-15:10",
+        7: "15:20-16:05",
+        8: "16:15-17:00",
+        9: "18:30-20:30",
+        10: "19:30-20:20"
+    }
 };
 
-// scheduleData 保持不变...
+// 根据节次范围获取时间字符串，如 section: "1-2" -> "8:00-9:40"
+function getTimeRange(sectionStr) {
+    if (!sectionStr || !CONFIG.timeSlots) return '';
+    
+    const parts = sectionStr.split('-');
+    if (parts.length !== 2) return CONFIG.timeSlots[parseInt(sectionStr)] || '';
+    
+    const start = parseInt(parts[0]);
+    const end = parseInt(parts[1]);
+    
+    const startTime = CONFIG.timeSlots[start];
+    const endTime = CONFIG.timeSlots[end];
+    
+    if (!startTime || !endTime) return '';
+    
+    // 提取开始时间的起始时刻和结束时间的结束时刻
+    const startMoment = startTime.split('-')[0];
+    const endMoment = endTime.split('-')[1];
+    
+    return `${startMoment}-${endMoment}`;
+}
 
 // 课表核心数据
 // weeks: 授课周次字符串，如 "1-12"
