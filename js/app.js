@@ -54,15 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return parseWeeks(weekStr).includes(parseInt(currentWeek));
     }
 
-    // 新增：获取时间段字符串
-    function getTimeRange(sectionStr) {
-        if (typeof getTimeRange !== 'undefined') {
-            // 如果 data.js 中已定义，直接使用
-            return window.getTimeRange ? window.getTimeRange(sectionStr) : '';
-        }
-        return '';
-    }
-
     // 渲染列表视图 (移动端)
     function renderListView(currentWeek, filterCurrentWeek) {
         listViewContainer.innerHTML = '';
@@ -101,8 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.classList.add('active-week');
                 }
 
-                // 获取时间段
-                const timeRange = getTimeRange(course.section);
+                // 获取时间段（调用 data.js 中的函数）
+                const timeRange = typeof getSectionTime === 'function' ? getSectionTime(course.section) : '';
 
                 card.innerHTML = `
                     <div class="time">
@@ -144,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 第一列：显示节次和具体时间
             let timeCell = document.createElement('td');
-            const timeRange = getTimeRange(sec);
+            const timeRange = typeof getSectionTime === 'function' ? getSectionTime(sec) : '';
             timeCell.innerHTML = `<div class="section-num">${sec}节</div>${timeRange ? `<div class="section-time">${timeRange}</div>` : ''}`;
             row.appendChild(timeCell);
 
@@ -263,12 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js')
-                .then(reg => {
-                    console.log('Service Worker 注册成功:', reg.scope);
-                })
-                .catch(err => {
-                    console.log('Service Worker 注册失败:', err);
-                });
+                .then(reg => console.log('Service Worker 注册成功:', reg.scope))
+                .catch(err => console.log('Service Worker 注册失败:', err));
         });
     }
 });
